@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% from "bootstrap/form.html" import render_form %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-6 my-3 ">
+            {{ render_form(form, button_map={"submit":"btn btn-outline-secondary"}) }}
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <h5 class="text-center text-secondary">共 {{ messages|length }} 条消息 </h5>
+            <div class="card">
+                <ul class="list-group list-group-flush">
+                    {% for message in messages %}
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1 text-success">{{ message.name }}
+                                    <small class="text-muted"> #{{ loop.revindex }}</small>
+                                </h5>
+                                <small data-toggle="tooltip" data-placement="top" class="qq"
+                                       data-timestamp="{{ message.timestamp.strftime('%Y-%m-%dT%H:%M:%SZ') }}"
+                                       data-delay="500">
+                                    {{ moment(message.timestamp).fromNow(refresh=True) }}
+                                </small>
+                            </div>
+
+                            <small>{{ message.body }}</small>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ moment.include_moment() }}
+    {#    {{ moment.locale("zh-cn") }}#}
+    {{ moment.locale(auto_detect=True) }}
+
+    <script>
+        $(function () {
+            function render_time() {
+                return moment($(this).data("timestamp")).format("llll")
+            }
+
+            $("[data-toggle='tooltip']").tooltip(
+                {title: render_time}
+            );
+        })
+    </script>
+{% endblock %}
+
+
