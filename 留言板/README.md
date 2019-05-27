@@ -1,4 +1,0 @@
-- 使用 pymysql 连接 MySQL 数据库
-- pipenv install
-- pipenv run flask forge
-- pipenv run flask run 
