@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block title %}新建博客{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>新建博客</h1>
+    </div>
+    {{ render_form(form) }}
+{% endblock %}
+
+{% block scripts %}
+{#    这三个都是ckeditor的#}
+    {{ super() }}
+    {{ ckeditor.load() }}
+    {{ ckeditor.config(name='body') }}
+{% endblock %}

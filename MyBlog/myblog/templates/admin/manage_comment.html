@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
+{% block title %}评论管理{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>评论数：
+            <small class="text-muted">{{ pagination.total }}</small>
+        </h1>
+
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">过滤条件：</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter', 'all') == 'all' %}active{% endif %}"
+                   href="{{ url_for('admin.manage_comment', filter='all') }}">全部</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter') == 'unread' %}active{% endif %}"
+                   href="{{ url_for('admin.manage_comment', filter='unread') }}">未读 {% if unread_comments %}<span
+                        class="badge badge-success">{{ unread_comments }}</span>{% endif %}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.args.get('filter') == 'admin' %}active{% endif %}"
+                   href="{{ url_for('admin.manage_comment', filter='admin') }}">管理员评论</a>
+            </li>
+        </ul>
+    </div>
+
+    {% if comments %}
+        <table class="table table-striped text-center">
+            <thead>
+            <tr>
+                <th>序号</th>
+                <th>作者</th>
+                <th>内容</th>
+                <th>日期</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            {% for comment in comments %}
+                <tr {% if not comment.reviewed %} class="table-warning" {% endif %}>
+                    <td>{{ loop.index + ((pagination.page - 1) * config['MYBLOG_POST_PAGE_NUM']) }}</td>
+                    <td>
+                        {% if comment.from_admin %}{{ admin.name }}{% else %}{{ comment.author }}{% endif %}<br>
+                        {% if comment.site %}
+                            <a href="{{ comment.site }}" target="_blank">
+                                {{ comment.site }}
+                            </a><br>
+                        {% endif %}
+                        <a href="mailto:{{ comment.email }}">{{ comment.email }}</a>
+
+                        {% if comment.from_admin %}
+                            <span class="badge badge-primary">Author</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ comment.body }}</td>
+                    <td>{{ moment(comment.timestamp).format('LL') }}</td>
+                    <td>
+                        <div class="justify-content-center row">
+                            {% if not comment.reviewed %}
+                                <form class="inline" method="post"
+                                      action="{{ url_for('.approve_comment', comment_id=comment.id, next=request.full_path) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-outline-success btn-sm">同意</button>
+                                </form>
+                            {% endif %}
+                            <a class="btn btn-outline-warning btn-sm mx-1"
+                               href="{{ url_for('blog.show_post', post_id=comment.post.id) }}">博客</a>
+                            <form class="inline" method="post"
+                                  action="{{ url_for('.delete_comment', comment_id=comment.id, next=request.full_path) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('你确定吗，老弟?');">删除
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="page-footer">{{ render_pagination(pagination) }}</div>
+    {% else %}
+        <div class="tip"><h5>亲，这里还没有评论哦！</h5></div>
+    {% endif %}
+{% endblock %}

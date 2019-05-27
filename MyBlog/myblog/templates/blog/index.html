@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "bootstrap/pagination.html" import render_pagination %}
+{% block title %}
+    Home
+{% endblock %}
+
+
+{% block content %}
+    <div>
+        <h1 class="display-3">{{ admin.blog_title|default("Blog Title") }}</h1>
+        <h4 class="text-muted">&nbsp;{{ admin.blog_sub_title|default("Blog Subtitle") }}</h4>
+    </div>
+{#    以上为博客标题和副标题#}
+
+
+    <div class="row">
+        <div class="col-9">
+            {% include "blog/post_list.html" %}
+
+            {% if posts %}
+                <div class="mt-4">{{ render_pagination(pagination, align="center") }}</div>
+            {% endif %}
+        </div>
+{#        以上为文章列表#}
+
+
+        <div class="col-3">
+            {% include "blog/_sidebar.html" %}
+        </div>
+{#        以上为侧边栏：链接以及分类#}
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+
+

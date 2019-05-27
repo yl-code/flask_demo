@@ -1,0 +1,122 @@
+{% from "bootstrap/nav.html" import render_nav_item %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} {% endblock %}- {{ admin.blog_title|default("Title") }}</title>
+    {{ bootstrap.load_css() }}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/%s.css' % request.cookies.get('theme', 'blue')) }}"
+          type="text/css">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for("blog.index") }}">{{ admin.blog_title }}</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                {{ render_nav_item("blog.index", "主页") }}
+                {{ render_nav_item("blog.about", "关于") }}
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-haspopup="true"
+                           aria-expanded="false">
+                            新建 <span class="caret"></span>
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ url_for('admin.new_post') }}">博客</a>
+                            <a class="dropdown-item" href="{{ url_for('admin.new_category') }}">分类</a>
+                            <a class="dropdown-item" href="{{ url_for('admin.new_link') }}">链接</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-haspopup="true"
+                           aria-expanded="false">
+                            管理 <span class="caret"></span>
+                            {% if unread_comments %}
+                                <span class="badge badge-success">new</span>
+                            {% endif %}
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{ url_for('admin.manage_post') }}">博客管理</a>
+                            <a class="dropdown-item" href="{{ url_for('admin.manage_category') }}">分类管理</a>
+                            <a class="dropdown-item" href="{{ url_for('admin.manage_comment') }}">
+                                评论管理
+                                {% if unread_comments %}
+                                    <span class="badge badge-success">{{ unread_comments }}</span>
+                                {% endif %}
+                            </a>
+                            <a class="dropdown-item" href="{{ url_for('admin.manage_link') }}">链接管理</a>
+                        </div>
+                    </li>
+                    {{ render_nav_item('admin.settings', '设置') }}
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+</nav>
+
+<div class="container">
+    {% for message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ message[0] }}" role="alert">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{ message[1] }}
+        </div>
+    {% endfor %}
+    {#    flash弹窗#}
+
+
+    {% block content %}
+    {% endblock %}
+    {#    内容#}
+
+
+    <footer>
+        <p>
+        <hr>
+        <small> &copy; 2018 <a href="#" title="Written by Mr.Yang">Yang Lei</a> -
+            <a href="#" title="Fork me on GitHub">GitHub</a>
+        </small>
+        <p class="float-right">
+            <small>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.logout', next=request.full_path) }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login', next=request.full_path) }}">Login</a>
+                {% endif %}
+            </small>
+        </p>
+        </p>
+
+    </footer>
+</div>
+
+{% block scripts %}
+
+{% endblock %}
+{{ bootstrap.load_js() }}
+{{ moment.include_moment() }}
+{#自动选择语言#}
+{{ moment.locale(auto_detect=True) }}
+
+{#    以下为时间对象moment的js函数#}
+<script>
+    $(function () {
+        function render_time() {
+            return moment($(this).data('timestamp')).format('llll')
+        }
+
+        $('[data-toggle="tooltip"]').tooltip(
+            {title: render_time}
+        );
+    });
+</script>
+</body>
+</html>

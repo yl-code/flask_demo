@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "bootstrap/pagination.html" import render_pagination %}
+
+{% block title %}
+    {{ category.name }}
+{% endblock %}
+
+
+{% block content %}
+    <div>
+        <h2>分类：{{ category.name }}</h2>
+        <h6 class="text-muted">博客数量：{{ category.posts|length }}</h6>
+    </div>
+{#    以上为分类名，该分类中的博客数量#}
+
+    <div class="row">
+        <div class="col-9">
+            {% include "blog/post_list.html" %}
+            <div>{{ render_pagination(pagination, align="center") }}</div>
+        </div>
+{#        以上为博客列表#}
+
+        <div class="col-3">
+            {% include "blog/_sidebar.html" %}
+        </div>
+{#        以上为侧边栏#}
+    </div>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% from "bootstrap/form.html" import render_form %}
+{% from "bootstrap/pagination.html" import render_pagination %}
+
+
+{% block title %}
+    {{ post.title }}
+{% endblock %}
+
+{% block content %}
+    <div class="mb-3">
+
+        <h1>{{ post.title }}</h1>
+
+        <small>
+            Category：<a
+                href="{{ url_for("blog.show_category", category_id=post.category.id) }}">{{ post.category.name }}</a>
+            <br>
+            Date：<span>{{ moment(post.timestamp).format("LLLL") }}</span>
+
+            <span class="btn-group float-right">
+                {% if current_user.is_authenticated %}
+                    <a class="btn btn-outline-warning btn-sm" href="{{ url_for('admin.edit_post', post_id=post.id) }}">Edit</a>
+                    <form class="ml-1 inline" method="post"
+                          action="{{ url_for('admin.delete_post', post_id=post.id, next=url_for('blog.index')) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('你确定删除吗?');">Delete
+                        </button>
+                    </form>
+                {% endif %}
+            </span>
+        </small>
+    </div>
+
+    <div class="row">
+        <div class="col-9">
+            {{ post.body|safe }}
+            <hr>
+
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+                分享这篇博客
+            </button>
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">分享链接</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-grop">
+                                <input type="text" class="form-control" name="" id=""
+                                       value="{{ url_for("blog.show_post", post_id=post.id, _external=True) }}"
+                                       readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="comments mt-4" id="comments">
+                <h5>本页有{{ pagination.total }}条评论
+                    {% if current_user.is_authenticated %}
+                        <form class="float-right" method="post"
+                              action="{{ url_for('admin.set_comment', post_id=post.id, next=request.full_path) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-warning btn-sm">
+                                {% if post.can_comment %}禁止评论{% else %}允许评论{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </h5>
+                {% if comments %}
+                    <div class="list-group">
+                        {% for comment in comments %}
+                            <li href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">
+                                        <a href="{% if comment.site %}{{ comment.site }}{% else %}#comments{% endif %}">
+                                            {% if comment.from_admin %}
+                                                {{ admin.name }}
+                                            {% else %}
+                                                {{ comment.author }}
+                                            {% endif %}
+                                        </a>
+                                        {% if comment.from_admin %}
+                                            <span class="badge badge-primary">Author</span>
+                                        {% endif %}
+                                        {% if comment.replied %}
+                                            <span class="badge badge-light">Reply</span>
+                                        {% endif %}
+                                    </h5>
+                                    <small data-toggle="tooltip" data-placement="top"
+                                           data-timestamp="{{ comment.timestamp.strftime('%Y-%m-%dT%H:%M:%SZ') }}">
+                                        {{ moment(comment.timestamp).fromNow() }}
+                                    </small>
+                                </div>
+                                {% if comment.replied %}
+                                    <p class="alert alert-dark reply-body">{{ comment.replied.author }}
+                                        :<br>
+                                        {{ comment.replied.body }}
+                                    </p>
+                                {% endif %}
+
+                                <p class="mb-1">
+                                    {{ comment.body }}
+                                </p>
+                                <div class="row float-right">
+                                    <a class="btn btn-outline-primary btn-sm"
+                                       href="{{ url_for("blog.reply_comment", comment_id=comment.id) }}">Reply</a>
+                                    {% if current_user.is_authenticated %}
+                                        <a class="btn btn-outline-secondary btn-sm mx-1"
+                                           href="mailto:{{ comment.email }}">Email</a>
+                                        <form method="post"
+                                              action="{{ url_for("admin.delete_comment", comment_id = comment.id, next=request.full_path) }}">
+                                            <input type="hidden" name="csrf_token" , value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                    onclick="return confirm('亲，你确定删除吗？🤔')">Delete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+
+                            </li>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="tip"><h5>亲， 还没有评论哦🤔🤡😎🤓🤑🙆‍</h5></div>
+                {% endif %}
+            </div>
+
+            {% if comments %}
+                {{ render_pagination(pagination, fragment='#comments') }}
+            {% endif %}
+
+            {% if request.args.get("reply") %}
+                <div class="alert alert-dark">
+                    回复<strong>{{ request.args.get("author") }}</strong>：
+                    <a class="btn btn-outline-danger btn-sm" href="{{ url_for("blog.show_post", post_id=post.id) }}">取消回复</a>
+                </div>
+            {% endif %}
+
+            {% if post.can_comment %}
+                <div id="comment-form">
+                    {{ render_form(form, action=request.full_path) }}
+                </div>
+            {% else %}
+                <div class="tip"><h5>禁止评论</h5></div>
+            {% endif %}
+        </div>
+
+        <div class="col-3">
+            {% include "blog/_sidebar.html" %}
+        </div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

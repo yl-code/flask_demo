@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
+
+{% block title %}设置{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1>设置</h1>
+    </div>
+    {{ render_form(form) }}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ ckeditor.load() }}
+{% endblock %}
