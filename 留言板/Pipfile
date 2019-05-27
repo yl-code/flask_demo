@@ -1,8 +1,7 @@
 [[source]]
 name = "pypi"
-#url = "https://pypi.python.org/simple"
+url = "https://pypi.python.org/simple"
 verify_ssl = true
-url = "http://mirrors.aliyun.com/pypi/simple/ "
 
 [dev-packages]
 faker = "*"
